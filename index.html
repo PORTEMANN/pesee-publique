@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La Pesée Publique — opérateur à contacts figés</title>
+<style>
+  :root { --bord: #bbb; --fond: #fafafa; --txt: #1a1a1a; --gris: #555;
+          --splus: #1a7f37; --p: #9a6700; --smoins: #cf222e; --dorm: #6e7781; }
+  body { font-family: Georgia, serif; max-width: 860px; margin: 2em auto;
+         padding: 0 1em; color: var(--txt); line-height: 1.45; }
+  h1 { font-size: 1.5em; margin-bottom: 0.2em; }
+  .meta { color: var(--gris); font-size: 0.9em; }
+  textarea { width: 100%; min-height: 9em; font-family: inherit;
+             font-size: 1em; padding: 0.6em; border: 1px solid var(--bord);
+             border-radius: 4px; box-sizing: border-box; }
+  button { font: inherit; padding: 0.45em 1.2em; margin-top: 0.6em;
+           background: var(--txt); color: #fff; border: 0;
+           border-radius: 4px; cursor: pointer; }
+  table { border-collapse: collapse; width: 100%; margin-top: 1em;
+          font-size: 0.9em; }
+  th, td { border: 0.5px solid var(--bord); padding: 6px 8px;
+           text-align: left; vertical-align: top; }
+  th { background: var(--fond); }
+  .S\+ { color: var(--splus); font-weight: bold; }
+  .P { color: var(--p); font-weight: bold; }
+  .S- { color: var(--smoins); font-weight: bold; }
+  .DORMEUR { color: var(--dorm); font-weight: bold; }
+  code { font-family: ui-monospace, monospace; font-size: 0.9em; }
+  footer { margin-top: 2em; font-size: 0.85em; color: var(--gris);
+           border-top: 0.5px solid var(--bord); padding-top: 1em; }
+  details { margin-top: 1em; font-size: 0.9em; color: var(--gris); }
+</style>
+</head>
+<body>
+<h1>La Pesée Publique</h1>
+<p class="meta">Opérateur à contacts figés — chaque verdict est adossé à un
+référentiel <strong>gelé et daté</strong>, affiché avec sa tolérance. Aucun
+calcul serveur : tout s'exécute dans ce navigateur, le code est MIT et
+rejouable. Ce qui n'entre dans aucun contact ne reçoit pas d'opinion :
+ça <em>dort</em> — dormeurs publiés, comme dans la maison.</p>
+
+<textarea id="entree" placeholder="Collez ici une affirmation physique — une prédiction d'IA, un communiqué, un bilan d'énergie…&#10;&#10;Exemple : « notre réacteur fournira 10^15 neutrons par seconde sur une cible d'un centimètre »"></textarea>
+<button id="bouton">Peser</button>
+
+<div id="resultat"></div>
+
+<details>
+<summary>Contacts figés de cette version (référentiel gelé le <span id="gel"></span>)</summary>
+<ul id="contacts"></ul>
+</details>
+
+<footer>Doctrine : <a href="https://github.com/PORTEMANN/noetic-machine-complete/blob/main/docs/NOTE-APPLICATIONS.md">NOTE-APPLICATIONS</a>
+(phase 2) — mêmes règles que les machines de la maison : zéro paramètre
+ajusté, tolérance gelée avant la mesure, dormeurs publiés, jamais « vrai ».
+Code : <a href="https://github.com/PORTEMANN/pesee-publique">github.com/PORTEMANN/pesee-publique</a> (MIT).</footer>
+
+<script src="engine.js"></script>
+<script>
+document.getElementById("gel").textContent = PESEE.FROZEN.date_gel;
+document.getElementById("contacts").innerHTML = PESEE.CONTACTS
+  .map(c => "<li><code>" + c.id + "</code> — " + c.titre + "</li>").join("");
+
+const CLASSE = { "S+": "S+", "P": "P", "S-": "S-", "DORMEUR": "DORMEUR" };
+
+document.getElementById("bouton").addEventListener("click", () => {
+  const { resultats, mots, gel } = PESEE.peser(
+    document.getElementById("entree").value);
+  const lignes = resultats.map(r =>
+    "<tr><td class='" + CLASSE[r.verdict] + "'>" + r.verdict + "</td>" +
+    "<td>" + escapeHtml(r.contact) + "</td>" +
+    "<td>" + escapeHtml(r.affirmation) + "</td>" +
+    "<td>" + escapeHtml(r.reference) + "</td></tr>").join("");
+  document.getElementById("resultat").innerHTML =
+    "<table><thead><tr><th>Verdict</th><th>Contact</th>" +
+    "<th>Affirmation pesée</th><th>Référentiel figé & tolérance</th>" +
+    "</tr></thead><tbody>" + lignes + "</tbody></table>" +
+    "<p class='meta'>" + resultats.length + " pesée(s) · " + mots +
+    " mots · référentiel gelé le " + gel + "</p>";
+});
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;");
+}
+</script>
+</body>
+</html>
